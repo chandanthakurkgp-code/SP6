@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SUPERINTENDENT OF POLICE – Paschim Medinipur</title>
     <style>
-        /* स्ट्रक्चर और ओरिजिनल थीम को सुरक्षित रखते हुए कलर अपडेट किया गया है */
+        /* स्ट्रक्चर को सुरक्षित रखते हुए सभी रंगों को पूरी तरह केसरिया (Saffron) थीम में बदल दिया गया है */
         * { box-sizing: border-box; transition: background 0.3s, color 0.3s; }
         
         :root { 
-            --police-blue: #FF6600;   /* भाजपा थीम: मुख्य केसरिया/भगवा रंग */
-            --light-green: #138808;   /* भाजपा थीम: गहरा हरा रंग */
-            --green-shadow: #0f6c06;  /* हरे रंग का शैडो */
+            --police-blue: #FF6600;   /* मुख्य केसरिया/भगवा रंग */
+            --light-green: #FF7700;   /* थीम केसरिया: ब्राइट केसरिया (पुराने हरे की जगह) */
+            --green-shadow: #cc4400;  /* गहरा केसरिया शैडो */
             --dark-bg: #1a1a1a; 
             --white-bg: #ffffff; 
             --text-color: #000000;
             --card-bg: #ffffff;
-            --btn-blue: #20b2aa;
+            --btn-blue: #d32f2f;      /* गहरा सिंदूरी/लाल-केसरिया रंग (पुराने ब्लू की जगह) */
             --btn-orange: #FF9933;   /* हल्का भगवा रंग */
         }
 
@@ -36,7 +36,7 @@
             transform-origin: top center;
         }
 
-        /* केवल हेडर सेक्शन केसरिया रहेगा */
+        /* हेडर सेक्शन केसरिया */
         .main-header { 
             text-align: center; 
             background-color: var(--police-blue); 
@@ -55,14 +55,14 @@
             flex-wrap: wrap; 
         }
         
-        /* बटन्स का स्टाइल और फ़ॉन्ट वही है */
+        /* बटन्स का स्टाइल वही है, बस कलर को केसरिया थीम के अनुसार किया गया है */
         .mode-btn, .links-btn { 
             padding: 12px 10px; border-radius: 10px; font-weight: 900; border: none; cursor: pointer;
             font-size: 12px; min-width: 100px; flex: 1; max-width: 150px; text-align: center; text-transform: uppercase;
         }
 
         .mode-btn { background-color: var(--light-green); color: #fff; box-shadow: 0 4px 0 var(--green-shadow); }
-        .links-btn.blue { background-color: var(--btn-blue); box-shadow: 0 4px 0 #188a84; color: white; }
+        .links-btn.blue { background-color: var(--btn-blue); box-shadow: 0 4px 0 #9a1f1f; color: white; }
         .links-btn.orange { background-color: var(--btn-orange); box-shadow: 0 4px 0 #cc7a29; color: white; }
 
         /* Modals */
@@ -92,7 +92,7 @@
         .section { display: none; }
         .section.active { display: block; }
         
-        /* कार्ड बॉर्डर स्टाइल */
+        /* कार्ड बॉर्डर केसरिया स्टाइल */
         .list-card { background: var(--card-bg); padding: 20px; border-radius: 20px; border: 5px solid var(--light-green); margin-bottom: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         
         .ps-header {
@@ -108,7 +108,7 @@
         
         .zoom-controls { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 4000; }
         .zoom-btn { width: 50px; height: 50px; border-radius: 50%; background-color: var(--light-green); border: 3px solid var(--green-shadow); font-size: 24px; font-weight: 900; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .home-btn { background-color: var(--btn-blue); border-color: #188a84; color: white; }
+        .home-btn { background-color: var(--btn-blue); border-color: #9a1f1f; color: white; }
     </style>
 </head>
 <body>
@@ -212,12 +212,11 @@
         loadCSVWithFallbacks();
     };
 
-    // यह फंक्शन 'main' और 'master' दोनों ब्रांच को खुद-ब-खुद चेक कर लेगा
     async function loadCSVWithFallbacks() {
         const urls = [
             'https://raw.githubusercontent.com/chandanthakurkgp-code/SP6/main/data.csv',
             'https://raw.githubusercontent.com/chandanthakurkgp-code/SP6/master/data.csv',
-            'data.csv' // लोकल पाथ बैकअप के लिए
+            'data.csv'
         ];
 
         let textData = null;
@@ -243,12 +242,10 @@
         }
     }
 
-    // CSV डेटा को रीड और प्रोसेस करने का एडवांस्ड लॉजिक
     function parseCSVData(text) {
         let lines = text.split(/\r?\n/);
         if (lines.length === 0 || !lines[0].trim()) { init(); return; }
 
-        // एक्सेल कभी कॉमा (,) तो कभी सेमीकोलन (;) लगाता है, यह दोनों को पहचान लेगा
         let separator = lines[0].includes(';') ? ';' : ',';
         let headers = lines[0].split(separator).map(h => h.trim().replace(/^["']|["']$/g, ""));
         
@@ -263,7 +260,6 @@
                 }
             });
             
-            // डेटा को सही टैब में डालना (छोटे-बड़े अक्षरों की गलती को सुधारते हुए)
             if(obj.type) {
                 let typeKey = obj.type.toLowerCase().trim();
                 if(shopData[typeKey]) {
