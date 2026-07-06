@@ -1,6 +1,8 @@
 type,ps_name,force_type,name,rank,mobile,landline,whatsapp
 asp,N/A,Officer,Rajesh Kumar,ASP HQ,9876543210,03222255123,9876543210
 sdpo,N/A,Officer,Amit Banerjee,SDPO Kharagpur,9876543211,,9876543211
+police_stations,Kharagpur Local,Officer,Manas Roy,Inspector-in-Charge,9876543214,03222256111,9876543214
+police_stations,Kharagpur Local,Constable,Sujit Das,Constable,9876543233,,9876543233
 police_stations,Kharagpur Town,Officer,Sanjay Biswas,Inspector-in-Charge,9876543212,03222255124,9876543212
 police_stations,Kharagpur Town,Officer,Tarun Kumar,Sub-Inspector,9876543213,,9876543213
 police_stations,Kharagpur Town,Constable,Amit Patra,Constable,9876543299,,9876543299
@@ -8,5 +10,3 @@ police_stations,Kharagpur Town,HG,Ramdas Murmu,Home Guard,9876543277,,9876543277
 police_stations,Kharagpur Town,NVF,Subrata Pal,NVF Vol.,9876543266,,9876543266
 police_stations,Kharagpur Town,CV,Deepak Sheet,Civic Volunteer,9876543255,,9876543255
 police_stations,Kharagpur Town,Driver,Ramu Yadav,Police Driver,9876543244,,9876543244
-police_stations,Kharagpur Local,Officer,Manas Roy,Inspector-in-Charge,9876543214,03222256111,9876543214
-police_stations,Kharagpur Local,Constable,Sujit Das,Constable,9876543233,,9876543233
