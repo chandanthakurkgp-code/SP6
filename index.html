@@ -15,6 +15,7 @@
             --dark-bg: #1a1a1a; 
             --white-bg: #ffffff; 
             --text-color: #000000;
+            --card-text-mute: #555555; /* लाइट मोड में लेबल का रंग */
             --card-bg: #ffffff;
             --btn-blue: #d32f2f;      /* गहरा सिंदूरी/लाल-केसरिया रंग */
             --btn-orange: #FF9933;   /* हल्का भगवा रंग */
@@ -23,6 +24,7 @@
         body.night-mode {
             --white-bg: #121212;
             --text-color: #ffffff;
+            --card-text-mute: #dddddd; /* नाइट मोड में लेबल का रंग (ताकि साफ़ दिखे) */
             --card-bg: #1e1e1e;
             --dark-bg: #000000;
         }
@@ -91,8 +93,10 @@
         .section { display: none; }
         .section.active { display: block; }
         
-        /* कार्ड बॉर्डर केसरिया स्टाइल */
-        .list-card { background: var(--card-bg); padding: 20px; border-radius: 20px; border: 5px solid var(--light-green); margin-bottom: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        /* कार्ड बॉर्डर स्टाइल - टेक्स्ट कलर को वेरिएबल से जोड़ा गया है */
+        .list-card { background: var(--card-bg); padding: 20px; border-radius: 20px; border: 5px solid var(--light-green); margin-bottom: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); color: var(--text-color); }
+        .list-card p { color: var(--card-text-mute); margin: 8px 0; }
+        .list-card p b { color: var(--text-color); }
         
         .ps-header {
             background-color: var(--dark-bg); color: #ffffff; padding: 15px;
@@ -171,7 +175,6 @@
         "police_stations": { title: "POLICE STATIONS", partners: [] }
     };
 
-    // फ़ोर्स कैटेगरीज की लिस्ट
     const forceCategories = ["ALL", "Officer", "Constable", "HG", "NVF", "CV", "Driver"];
 
     function toggleNightMode() {
@@ -186,13 +189,11 @@
         if (btn) btn.innerHTML = isNight ? "☀️ LIGHT MODE" : "🌙 NIGHT MODE";
     }
 
-    // मोडल खोलना/बंद करना
     function toggleModal(id) {
         const m = document.getElementById(id);
         if (m) m.style.display = (m.style.display === "block") ? "none" : "block";
     }
 
-    // ज़ूम कंट्रोलर
     function changeZoom(delta) {
         let currentZoom = parseFloat(document.body.style.zoom) || 1.0;
         currentZoom += delta;
@@ -252,18 +253,33 @@
         if (lines.length === 0 || !lines[0].trim()) { init(); return; }
 
         let separator = lines[0].includes(';') ? ';' : ',';
-        let headers = lines[0].split(separator).map(h => h.trim().replace(/^["']|["']$/g, ""));
+        let headers = lines[0].split(separator).map(h => h.trim().toLowerCase().replace(/^["']|["']$/g, ""));
         
+        // कॉलम इंडेक्स का पता लगाना ताकि कोई गड़बड़ न हो
+        let typeIdx = headers.indexOf('type');
+        let psNameIdx = headers.indexOf('ps_name');
+        let forceTypeIdx = headers.indexOf('force_type');
+        let nameIdx = headers.indexOf('name');
+        let rankIdx = headers.indexOf('rank');
+        let mobileIdx = headers.indexOf('mobile');
+        let landlineIdx = headers.indexOf('landline');
+        let whatsappIdx = headers.indexOf('whatsapp');
+
         for(let i = 1; i < lines.length; i++) {
             if(!lines[i].trim()) continue;
             
             let cols = lines[i].split(separator).map(c => c.trim().replace(/^["']|["']$/g, ""));
-            let obj = {};
-            headers.forEach((header, index) => {
-                if (header) {
-                    obj[header] = cols[index] !== undefined ? cols[index] : '';
-                }
-            });
+            
+            let obj = {
+                type: typeIdx !== -1 && cols[typeIdx] ? cols[typeIdx] : '',
+                ps_name: psNameIdx !== -1 && cols[psNameIdx] ? cols[psNameIdx] : '',
+                force_type: forceTypeIdx !== -1 && cols[forceTypeIdx] ? cols[forceTypeIdx] : 'Officer',
+                name: nameIdx !== -1 && cols[nameIdx] ? cols[nameIdx] : 'N/A',
+                rank: rankIdx !== -1 && cols[rankIdx] ? cols[rankIdx] : 'N/A',
+                mobile: mobileIdx !== -1 && cols[mobileIdx] ? cols[mobileIdx] : 'N/A',
+                landline: landlineIdx !== -1 && cols[landlineIdx] ? cols[landlineIdx] : '',
+                whatsapp: whatsappIdx !== -1 && cols[whatsappIdx] ? cols[whatsappIdx] : ''
+            };
             
             if(obj.type) {
                 let typeKey = obj.type.toLowerCase().trim();
@@ -314,9 +330,8 @@
                 });
                 
                 Object.keys(grouped).forEach(psName => {
-                    let safePsId = psName.replace(/\s+/g, '_');
+                    let safePsId = psName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
                     
-                    // फ़ोर्स फ़िल्टर सब-बटन्स (Officer, Constable, HG, NVF, CV, Driver)
                     let forceButtonsHtml = `<div class="force-btn-group">`;
                     forceCategories.forEach(cat => {
                         forceButtonsHtml += `<button class="force-btn ${cat === 'ALL' ? 'active' : ''}" onclick="filterForce('${safePsId}', '${cat}', this)">${cat}</button>`;
@@ -348,21 +363,20 @@
         contentArea.prepend(dirSection);
     }
 
-    // यह फ़ंक्शन बटन दबाते ही सिर्फ चुनी हुई फ़ोर्स (जैसे CV) को ही दिखाएगा
+    // सटीक मैचिंग के साथ सुधारा गया फ़िल्टर फ़ंक्शन
     function filterForce(psId, category, btnElement) {
         const psContent = document.getElementById(`ps_content_${psId}`);
         if (!psContent) return;
 
-        // बटन को एक्टिव दिखाना
         const buttons = psContent.querySelectorAll('.force-btn');
         buttons.forEach(btn => btn.classList.remove('active'));
         btnElement.classList.add('active');
 
-        // सिर्फ सिलेक्टेड फ़ोर्स वाले कार्ड्स को शो करना, बाकी को हाइड करना
         const cards = psContent.querySelectorAll('.list-card');
         cards.forEach(card => {
             const cardForce = card.getAttribute('data-force') || '';
-            if (category === 'ALL' || cardForce.toLowerCase() === category.toLowerCase()) {
+            // छोटे-बड़े अक्षरों और खाली जगह (Spaces) को क्लीन करके मैच करना
+            if (category === 'ALL' || cardForce.toLowerCase().trim() === category.toLowerCase().trim()) {
                 card.style.display = 'block';
             } else {
                 card.style.display = 'none';
@@ -379,10 +393,10 @@
     }
 
     function createCard(p) {
-        let forceType = p.force_type || 'Officer'; // डिफ़ॉल्ट रूप से Officer
+        let forceType = (p.force_type || 'Officer').trim();
         return `
             <div class="list-card" data-force="${forceType}">
-                <h3 style="color:var(--green-shadow); margin-top:0;">${p.name || 'N/A'}</h3>
+                <h3 style="color:var(--police-blue); margin-top:0; font-weight:900;">${p.name || 'N/A'}</h3>
                 <p>🎖️ <b>Rank:</b> ${p.rank || 'N/A'} (${forceType})</p>
                 <p>📞 <b>Mobile:</b> ${p.mobile || 'N/A'}</p>
                 <div class="btn-group">
