@@ -103,9 +103,10 @@
         .ps-content.open { display: block; }
 
         /* फ़ोर्स फ़िल्टर बटन ग्रुप स्टाइल */
-        .force-btn-group { display: flex; gap: 5px; overflow-x: auto; padding: 10px 0; margin-bottom: 15px; scrollbar-width: none; }
-        .force-btn { padding: 8px 15px; background-color: var(--dark-bg); color: #fff; border: 2px solid var(--light-green); border-radius: 20px; font-size: 11px; font-weight: 900; cursor: pointer; white-space: nowrap; }
-        .force-btn.active { background-color: var(--light-green); color: #fff; }
+        .force-btn-group { display: flex; gap: 6px; overflow-x: auto; padding: 5px 0 12px 0; margin-bottom: 15px; border-bottom: 1px dashed var(--light-green); scrollbar-width: none; }
+        .force-btn-group::-webkit-scrollbar { display: none; }
+        .force-btn { padding: 10px 18px; background-color: var(--dark-bg); color: #fff; border: 2px solid var(--light-green); border-radius: 20px; font-size: 12px; font-weight: 900; cursor: pointer; white-space: nowrap; box-shadow: 0 3px 0 var(--green-shadow); }
+        .force-btn.active { background-color: var(--light-green); color: #fff; box-shadow: none; transform: translateY(2px); }
 
         .btn-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; margin-top: 15px; }
         .action-btn { padding: 12px 5px; text-decoration: none; color: #fff; border-radius: 50px; text-align: center; font-weight: 900; background-color: var(--light-green); border: none; font-size: 11px; }
@@ -170,6 +171,7 @@
         "police_stations": { title: "POLICE STATIONS", partners: [] }
     };
 
+    // फ़ोर्स कैटेगरीज की लिस्ट
     const forceCategories = ["ALL", "Officer", "Constable", "HG", "NVF", "CV", "Driver"];
 
     function toggleNightMode() {
@@ -184,6 +186,7 @@
         if (btn) btn.innerHTML = isNight ? "☀️ LIGHT MODE" : "🌙 NIGHT MODE";
     }
 
+    // मोडल खोलना/बंद करना
     function toggleModal(id) {
         const m = document.getElementById(id);
         if (m) m.style.display = (m.style.display === "block") ? "none" : "block";
@@ -313,7 +316,7 @@
                 Object.keys(grouped).forEach(psName => {
                     let safePsId = psName.replace(/\s+/g, '_');
                     
-                    // फोर्स फ़िल्टर बटन्स का निर्माण
+                    // फ़ोर्स फ़िल्टर सब-बटन्स (Officer, Constable, HG, NVF, CV, Driver)
                     let forceButtonsHtml = `<div class="force-btn-group">`;
                     forceCategories.forEach(cat => {
                         forceButtonsHtml += `<button class="force-btn ${cat === 'ALL' ? 'active' : ''}" onclick="filterForce('${safePsId}', '${cat}', this)">${cat}</button>`;
@@ -345,17 +348,17 @@
         contentArea.prepend(dirSection);
     }
 
-    // विशिष्ट पुलिस स्टेशन के अंतर्गत फोर्स फ़िल्टर करने का नया फंक्शन
+    // यह फ़ंक्शन बटन दबाते ही सिर्फ चुनी हुई फ़ोर्स (जैसे CV) को ही दिखाएगा
     function filterForce(psId, category, btnElement) {
         const psContent = document.getElementById(`ps_content_${psId}`);
         if (!psContent) return;
 
-        // वर्तमान बटन को एक्टिव दिखाना
+        // बटन को एक्टिव दिखाना
         const buttons = psContent.querySelectorAll('.force-btn');
         buttons.forEach(btn => btn.classList.remove('active'));
         btnElement.classList.add('active');
 
-        // कार्ड्स को हाइड/शो करना
+        // सिर्फ सिलेक्टेड फ़ोर्स वाले कार्ड्स को शो करना, बाकी को हाइड करना
         const cards = psContent.querySelectorAll('.list-card');
         cards.forEach(card => {
             const cardForce = card.getAttribute('data-force') || '';
@@ -376,7 +379,7 @@
     }
 
     function createCard(p) {
-        let forceType = p.force_type || 'Officer'; // डिफ़ॉल्ट 'Officer'
+        let forceType = p.force_type || 'Officer'; // डिफ़ॉल्ट रूप से Officer
         return `
             <div class="list-card" data-force="${forceType}">
                 <h3 style="color:var(--green-shadow); margin-top:0;">${p.name || 'N/A'}</h3>
