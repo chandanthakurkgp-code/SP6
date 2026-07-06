@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SUPERINTENDENT OF POLICE – Paschim Medinipur</title>
     <style>
-        /* स्ट्रक्चर और ओरिजिनल थीम को सुरक्षित रखते हुए कलर अपडेट किया गया है */
+        /* स्ट्रक्चर को सुरक्षित रखते हुए सभी रंगों को पूरी तरह केसरिया (Saffron) थीम में रखा गया है */
         * { box-sizing: border-box; transition: background 0.3s, color 0.3s; }
         
         :root { 
-            --police-blue: #FF6600;   /* भाजपा थीम: मुख्य केसरिया/भगवा रंग */
-            --light-green: #138808;   /* भाजपा थीम: गहरा हरा रंग */
-            --green-shadow: #0f6c06;  /* हरे रंग का शैडो */
+            --police-blue: #FF6600;   /* मुख्य केसरिया/भगवा रंग */
+            --light-green: #FF7700;   /* थीम केसरिया: ब्राइट केसरिया */
+            --green-shadow: #cc4400;  /* गहरा केसरिया शैडो */
             --dark-bg: #1a1a1a; 
             --white-bg: #ffffff; 
             --text-color: #000000;
             --card-bg: #ffffff;
-            --btn-blue: #20b2aa;
+            --btn-blue: #d32f2f;      /* गहरा सिंदूरी/लाल-केसरिया रंग */
             --btn-orange: #FF9933;   /* हल्का भगवा रंग */
         }
 
@@ -36,7 +36,7 @@
             transform-origin: top center;
         }
 
-        /* केवल हेडर सेक्शन केसरिया रहेगा */
+        /* हेडर सेक्शन केसरिया */
         .main-header { 
             text-align: center; 
             background-color: var(--police-blue); 
@@ -55,14 +55,13 @@
             flex-wrap: wrap; 
         }
         
-        /* बटन्स का स्टाइल और फ़ॉन्ट वही है */
         .mode-btn, .links-btn { 
             padding: 12px 10px; border-radius: 10px; font-weight: 900; border: none; cursor: pointer;
             font-size: 12px; min-width: 100px; flex: 1; max-width: 150px; text-align: center; text-transform: uppercase;
         }
 
         .mode-btn { background-color: var(--light-green); color: #fff; box-shadow: 0 4px 0 var(--green-shadow); }
-        .links-btn.blue { background-color: var(--btn-blue); box-shadow: 0 4px 0 #188a84; color: white; }
+        .links-btn.blue { background-color: var(--btn-blue); box-shadow: 0 4px 0 #9a1f1f; color: white; }
         .links-btn.orange { background-color: var(--btn-orange); box-shadow: 0 4px 0 #cc7a29; color: white; }
 
         /* Modals */
@@ -92,7 +91,7 @@
         .section { display: none; }
         .section.active { display: block; }
         
-        /* कार्ड बॉर्डर स्टाइल */
+        /* कार्ड बॉर्डर केसरिया स्टाइल */
         .list-card { background: var(--card-bg); padding: 20px; border-radius: 20px; border: 5px solid var(--light-green); margin-bottom: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         
         .ps-header {
@@ -103,12 +102,17 @@
         .ps-content { display: none; padding-top: 10px; }
         .ps-content.open { display: block; }
 
+        /* फ़ोर्स फ़िल्टर बटन ग्रुप स्टाइल */
+        .force-btn-group { display: flex; gap: 5px; overflow-x: auto; padding: 10px 0; margin-bottom: 15px; scrollbar-width: none; }
+        .force-btn { padding: 8px 15px; background-color: var(--dark-bg); color: #fff; border: 2px solid var(--light-green); border-radius: 20px; font-size: 11px; font-weight: 900; cursor: pointer; white-space: nowrap; }
+        .force-btn.active { background-color: var(--light-green); color: #fff; }
+
         .btn-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; margin-top: 15px; }
         .action-btn { padding: 12px 5px; text-decoration: none; color: #fff; border-radius: 50px; text-align: center; font-weight: 900; background-color: var(--light-green); border: none; font-size: 11px; }
         
         .zoom-controls { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 4000; }
         .zoom-btn { width: 50px; height: 50px; border-radius: 50%; background-color: var(--light-green); border: 3px solid var(--green-shadow); font-size: 24px; font-weight: 900; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .home-btn { background-color: var(--btn-blue); border-color: #188a84; color: white; }
+        .home-btn { background-color: var(--btn-blue); border-color: #9a1f1f; color: white; }
     </style>
 </head>
 <body>
@@ -166,6 +170,8 @@
         "police_stations": { title: "POLICE STATIONS", partners: [] }
     };
 
+    const forceCategories = ["ALL", "Officer", "Constable", "HG", "NVF", "CV", "Driver"];
+
     function toggleNightMode() {
         document.body.classList.toggle('night-mode');
         const isNight = document.body.classList.contains('night-mode');
@@ -183,6 +189,7 @@
         if (m) m.style.display = (m.style.display === "block") ? "none" : "block";
     }
 
+    // ज़ूम कंट्रोलर
     function changeZoom(delta) {
         let currentZoom = parseFloat(document.body.style.zoom) || 1.0;
         currentZoom += delta;
@@ -212,43 +219,35 @@
         loadCSVWithFallbacks();
     };
 
-    // यह फंक्शन 'main' और 'master' दोनों ब्रांच को खुद-ब-खुद चेक कर लेगा
     async function loadCSVWithFallbacks() {
         const urls = [
             'https://raw.githubusercontent.com/chandanthakurkgp-code/SP6/main/data.csv',
             'https://raw.githubusercontent.com/chandanthakurkgp-code/SP6/master/data.csv',
-            'data.csv' // लोकल पाथ बैकअप के लिए
+            'data.csv'
         ];
 
         let textData = null;
-
         for (let url of urls) {
             try {
                 let response = await fetch(url);
                 if (response.ok) {
                     textData = await response.text();
-                    console.log("डेटा यहाँ से लोड हुआ: " + url);
                     break;
                 }
-            } catch (e) {
-                console.log("इस लिंक पर फ़ाइल नहीं मिली: " + url);
-            }
+            } catch (e) {}
         }
 
         if (textData) {
             parseCSVData(textData);
         } else {
-            console.error("कहीं भी data.csv फ़ाइल नहीं मिली।");
             init();
         }
     }
 
-    // CSV डेटा को रीड और प्रोसेस करने का एडवांस्ड लॉजिक
     function parseCSVData(text) {
         let lines = text.split(/\r?\n/);
         if (lines.length === 0 || !lines[0].trim()) { init(); return; }
 
-        // एक्सेल कभी कॉमा (,) तो कभी सेमीकोलन (;) लगाता है, यह दोनों को पहचान लेगा
         let separator = lines[0].includes(';') ? ';' : ',';
         let headers = lines[0].split(separator).map(h => h.trim().replace(/^["']|["']$/g, ""));
         
@@ -263,7 +262,6 @@
                 }
             });
             
-            // डेटा को सही टैब में डालना (छोटे-बड़े अक्षरों की गलती को सुधारते हुए)
             if(obj.type) {
                 let typeKey = obj.type.toLowerCase().trim();
                 if(shopData[typeKey]) {
@@ -311,14 +309,27 @@
                     if (!grouped[psName]) grouped[psName] = [];
                     grouped[psName].push(p);
                 });
+                
                 Object.keys(grouped).forEach(psName => {
+                    let safePsId = psName.replace(/\s+/g, '_');
+                    
+                    // फोर्स फ़िल्टर बटन्स का निर्माण
+                    let forceButtonsHtml = `<div class="force-btn-group">`;
+                    forceCategories.forEach(cat => {
+                        forceButtonsHtml += `<button class="force-btn ${cat === 'ALL' ? 'active' : ''}" onclick="filterForce('${safePsId}', '${cat}', this)">${cat}</button>`;
+                    });
+                    forceButtonsHtml += `</div>`;
+
                     html += `
                         <div class="ps-header" onclick="togglePS(this)">
                             <span>🚨 ${psName} Police Station</span>
                             <span class="ps-icon">▼</span>
                         </div>
-                        <div class="ps-content">
-                            ${grouped[psName].map(p => createCard(p)).join('')}
+                        <div class="ps-content" id="ps_content_${safePsId}">
+                            ${forceButtonsHtml}
+                            <div class="cards-container">
+                                ${grouped[psName].map(p => createCard(p)).join('')}
+                            </div>
                         </div>`;
                 });
             } else {
@@ -334,6 +345,28 @@
         contentArea.prepend(dirSection);
     }
 
+    // विशिष्ट पुलिस स्टेशन के अंतर्गत फोर्स फ़िल्टर करने का नया फंक्शन
+    function filterForce(psId, category, btnElement) {
+        const psContent = document.getElementById(`ps_content_${psId}`);
+        if (!psContent) return;
+
+        // वर्तमान बटन को एक्टिव दिखाना
+        const buttons = psContent.querySelectorAll('.force-btn');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        btnElement.classList.add('active');
+
+        // कार्ड्स को हाइड/शो करना
+        const cards = psContent.querySelectorAll('.list-card');
+        cards.forEach(card => {
+            const cardForce = card.getAttribute('data-force') || '';
+            if (category === 'ALL' || cardForce.toLowerCase() === category.toLowerCase()) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
     function createTab(text, id, active) {
         const btn = document.createElement('button');
         btn.className = `tab-btn ${active ? 'active' : ''}`;
@@ -343,10 +376,11 @@
     }
 
     function createCard(p) {
+        let forceType = p.force_type || 'Officer'; // डिफ़ॉल्ट 'Officer'
         return `
-            <div class="list-card">
+            <div class="list-card" data-force="${forceType}">
                 <h3 style="color:var(--green-shadow); margin-top:0;">${p.name || 'N/A'}</h3>
-                <p>🎖️ <b>Rank:</b> ${p.rank || 'N/A'}</p>
+                <p>🎖️ <b>Rank:</b> ${p.rank || 'N/A'} (${forceType})</p>
                 <p>📞 <b>Mobile:</b> ${p.mobile || 'N/A'}</p>
                 <div class="btn-group">
                     <a href="tel:${p.mobile}" class="action-btn">📞 CALL</a>
