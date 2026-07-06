@@ -55,7 +55,7 @@
             flex-wrap: wrap; 
         }
         
-        /* बटन्स का स्टाइल और फ़ॉन्ट वही है, बस कलर को थीम के अनुसार किया गया है */
+        /* बटन्स का स्टाइल और फ़ॉन्ट वही है */
         .mode-btn, .links-btn { 
             padding: 12px 10px; border-radius: 10px; font-weight: 900; border: none; cursor: pointer;
             font-size: 12px; min-width: 100px; flex: 1; max-width: 150px; text-align: center; text-transform: uppercase;
@@ -160,7 +160,6 @@
 </div>
 
 <script>
-    // एक्सेल से बना डेटा लोड करने के लिए बेस स्ट्रक्चर
     let shopData = {
         "asp": { title: "ASP", partners: [] },
         "sdpo": { title: "SDPO", partners: [] },
@@ -192,7 +191,6 @@
 
     function goHome() { location.reload(); }
 
-    // पुलिस स्टेशन एकॉर्डियन टॉगल करने का फंक्शन
     function togglePS(header) {
         const content = header.nextElementSibling;
         const icon = header.querySelector('.ps-icon');
@@ -211,42 +209,78 @@
             document.body.classList.add('night-mode');
             updateModeButton(true);
         }
-        loadCSVAndInit();
+        loadCSVWithFallbacks();
     };
 
-    // GitHub Pages पर रखी हुई CSV फाइल को लोड करने का फंक्शन
-    function loadCSVAndInit() {
-        // आपकी रिपोजिटरी के डेटा का डायरेक्ट पाथ
-        fetch('https://raw.githubusercontent.com/chandanthakurkgp-code/SP6/main/data.csv')
-        .then(response => response.text())
-        .then(text => {
-            let lines = text.split('\n');
-            let headers = lines[0].split(',').map(h => h.trim());
+    // यह फंक्शन 'main' और 'master' दोनों ब्रांच को खुद-ब-खुद चेक कर लेगा
+    async function loadCSVWithFallbacks() {
+        const urls = [
+            'https://raw.githubusercontent.com/chandanthakurkgp-code/SP6/main/data.csv',
+            'https://raw.githubusercontent.com/chandanthakurkgp-code/SP6/master/data.csv',
+            'data.csv' // लोकल पाथ बैकअप के लिए
+        ];
+
+        let textData = null;
+
+        for (let url of urls) {
+            try {
+                let response = await fetch(url);
+                if (response.ok) {
+                    textData = await response.text();
+                    console.log("डेटा यहाँ से लोड हुआ: " + url);
+                    break;
+                }
+            } catch (e) {
+                console.log("इस लिंक पर फ़ाइल नहीं मिली: " + url);
+            }
+        }
+
+        if (textData) {
+            parseCSVData(textData);
+        } else {
+            console.error("कहीं भी data.csv फ़ाइल नहीं मिली।");
+            init();
+        }
+    }
+
+    // CSV डेटा को रीड और प्रोसेस करने का एडवांस्ड लॉजिक
+    function parseCSVData(text) {
+        let lines = text.split(/\r?\n/);
+        if (lines.length === 0 || !lines[0].trim()) { init(); return; }
+
+        // एक्सेल कभी कॉमा (,) तो कभी सेमीकोलन (;) लगाता है, यह दोनों को पहचान लेगा
+        let separator = lines[0].includes(';') ? ';' : ',';
+        let headers = lines[0].split(separator).map(h => h.trim().replace(/^["']|["']$/g, ""));
+        
+        for(let i = 1; i < lines.length; i++) {
+            if(!lines[i].trim()) continue;
             
-            for(let i = 1; i < lines.length; i++) {
-                if(!lines[i].trim()) continue;
-                
-                let cols = lines[i].split(',');
-                let obj = {};
-                headers.forEach((header, index) => {
-                    obj[header] = cols[index] ? cols[index].trim() : '';
-                });
-                
-                if(shopData[obj.type]) {
-                    shopData[obj.type].partners.push(obj);
+            let cols = lines[i].split(separator).map(c => c.trim().replace(/^["']|["']$/g, ""));
+            let obj = {};
+            headers.forEach((header, index) => {
+                if (header) {
+                    obj[header] = cols[index] !== undefined ? cols[index] : '';
+                }
+            });
+            
+            // डेटा को सही टैब में डालना (छोटे-बड़े अक्षरों की गलती को सुधारते हुए)
+            if(obj.type) {
+                let typeKey = obj.type.toLowerCase().trim();
+                if(shopData[typeKey]) {
+                    shopData[typeKey].partners.push(obj);
                 }
             }
-            init();
-        })
-        .catch(err => {
-            console.error("CSV लोड करने में समस्या आई: ", err);
-            init(); // एरर आने पर भी पुराना स्ट्रक्चर रेंडर हो जाएगा
-        });
+        }
+        init();
     }
 
     function init() {
         if(shopData.police_stations && shopData.police_stations.partners) {
-            shopData.police_stations.partners.sort((a, b) => a.ps_name.localeCompare(b.ps_name));
+            shopData.police_stations.partners.sort((a, b) => {
+                let nameA = a.ps_name || '';
+                let nameB = b.ps_name || '';
+                return nameA.localeCompare(nameB);
+            });
         }
         
         const tabMenu = document.getElementById('tabMenu');
@@ -273,8 +307,9 @@
             if (key === "police_stations") {
                 const grouped = {};
                 shopData[key].partners.forEach(p => {
-                    if (!grouped[p.ps_name]) grouped[p.ps_name] = [];
-                    grouped[p.ps_name].push(p);
+                    let psName = p.ps_name || 'Unknown';
+                    if (!grouped[psName]) grouped[psName] = [];
+                    grouped[psName].push(p);
                 });
                 Object.keys(grouped).forEach(psName => {
                     html += `
@@ -310,9 +345,9 @@
     function createCard(p) {
         return `
             <div class="list-card">
-                <h3 style="color:var(--green-shadow); margin-top:0;">${p.name}</h3>
+                <h3 style="color:var(--green-shadow); margin-top:0;">${p.name || 'N/A'}</h3>
                 <p>🎖️ <b>Rank:</b> ${p.rank || 'N/A'}</p>
-                <p>📞 <b>Mobile:</b> ${p.mobile}</p>
+                <p>📞 <b>Mobile:</b> ${p.mobile || 'N/A'}</p>
                 <div class="btn-group">
                     <a href="tel:${p.mobile}" class="action-btn">📞 CALL</a>
                     ${p.landline ? `<a href="tel:${p.landline}" class="action-btn">☎️ LANDLINE</a>` : ""}
