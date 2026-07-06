@@ -192,6 +192,7 @@
 
     function goHome() { location.reload(); }
 
+    // पुलिस स्टेशन एकॉर्डियन टॉगल करने का फंक्शन
     function togglePS(header) {
         const content = header.nextElementSibling;
         const icon = header.querySelector('.ps-icon');
@@ -213,9 +214,10 @@
         loadCSVAndInit();
     };
 
-    // CSV फाइल को रीड करके डेटा ऑब्जेक्ट बनाने का फंक्शन
+    // GitHub Pages पर रखी हुई CSV फाइल को लोड करने का फंक्शन
     function loadCSVAndInit() {
-        fetch('data.csv')
+        // आपकी रिपोजिटरी के डेटा का डायरेक्ट पाथ
+        fetch('https://raw.githubusercontent.com/chandanthakurkgp-code/SP6/main/data.csv')
         .then(response => response.text())
         .then(text => {
             let lines = text.split('\n');
@@ -224,7 +226,6 @@
             for(let i = 1; i < lines.length; i++) {
                 if(!lines[i].trim()) continue;
                 
-                // कॉमा के आधार पर डेटा अलग करना
                 let cols = lines[i].split(',');
                 let obj = {};
                 headers.forEach((header, index) => {
@@ -239,7 +240,7 @@
         })
         .catch(err => {
             console.error("CSV लोड करने में समस्या आई: ", err);
-            init(); // अगर एरर आए तब भी खाली स्ट्रक्चर रेंडर हो जाए
+            init(); // एरर आने पर भी पुराना स्ट्रक्चर रेंडर हो जाएगा
         });
     }
 
@@ -251,7 +252,6 @@
         const tabMenu = document.getElementById('tabMenu');
         const contentArea = document.getElementById('contentArea');
         
-        // पुराने मेनू और कंटेंट को साफ़ करना (ताकि डुप्लीकेट न हो)
         tabMenu.innerHTML = "";
         contentArea.innerHTML = "";
 
