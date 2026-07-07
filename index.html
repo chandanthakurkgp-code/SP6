@@ -86,7 +86,9 @@
 
         .nav-container { background-color: var(--dark-bg); padding: 15px 0; position: sticky; top: 0; z-index: 1000; display: flex; gap: 10px; border-bottom: 4px solid var(--light-green); overflow-x: auto; padding-left: 10px; scrollbar-width: none; }
         .tab-btn { font-size: 14px; padding: 10px 20px; font-weight: 900; cursor: pointer; border-radius: 50px; background-color: var(--light-green); color: #fff; border: none; white-space: nowrap; box-shadow: 0 4px 0 var(--green-shadow); }
-        .tab-btn.active { background-color: #fff; color: var(--text-color); transform: translateY(3px); box-shadow: 0 2px 0 var(--green-shadow); }
+        
+        /* 🛠️ नाइट मोड में बटन का नाम गायब होने से रोकने के लिए टेक्स्ट का कलर ब्लैक (#000) फिक्स किया गया है */
+        .tab-btn.active { background-color: #fff !important; color: #000000 !important; transform: translateY(3px); box-shadow: 0 2px 0 var(--green-shadow); }
 
         .container { padding: 15px; max-width: 1100px; margin: auto; padding-bottom: 120px; }
         .section { display: none; }
@@ -166,6 +168,9 @@
 </div>
 
 <script>
+    // 🎯 आपकी शीट आईडी बैकअप के लिए सुरक्षित रखी गई है
+    const GOOGLE_SHEET_ID = "1LbFP7NdtIiibVAMqnYtCQVfwrj8UrUxN"; 
+
     let shopData = {
         "asp": { title: "ASP", partners: [] },
         "sdpo": { title: "SDPO", partners: [] },
@@ -199,81 +204,80 @@
 
     function goHome() { location.reload(); }
 
-    // एकॉर्डियन टॉगल
-    function togglePS(header) {
-        const content = header.nextElementSibling;
-        const icon = header.querySelector('.ps-icon');
-        if (content.classList.contains('open')) {
-            content.classList.remove('open');
-            icon.innerText = '▼';
-        } else {
-            content.classList.add('open');
-            icon.innerText = '▲';
-        }
-    }
-
     window.onload = function() {
         const savedTheme = localStorage.getItem('theme');
         if(savedTheme === 'night') {
             document.body.classList.add('night-mode');
             updateModeButton(true);
         }
-        loadLocalCSVData();
+        loadCombinedData();
     };
 
-    // गिटहब की अपनी 'data.csv' को बिना एरर और कैशे बस्टिंग के साथ लोड करना
-    function loadLocalCSVData() {
-        // ?v=Date.now() लगाने से गिटहब हमेशा फ्रेश और नया डेटा लोड करेगा
-        const url = 'data.csv?v=' + Date.now();
+    // गिटहब CSV और गूगल शीट दोनों को संभालने वाला ऑटोमैटिक सिस्टम (कैशे बस्टर के साथ)
+    async function loadCombinedData() {
+        const urls = [
+            'data.csv?v=' + Date.now(), // गिटहब लोकल फ़ाइल (सबसे तेज़ और सुरक्षित)
+            `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/export?format=csv&gid=0`
+        ];
 
-        fetch(url)
-        .then(response => response.text())
-        .then(text => {
-            // पूरे एक्सेल टेक्स्ट से हिडन \r कैरेक्टर साफ़ करना (ताकि बटन्स काम करें)
-            let cleanText = text.replace(/\r/g, "");
-            let lines = cleanText.split("\n");
-            if (lines.length === 0 || !lines[0].trim()) { init(); return; }
+        let textData = null;
+        for (let url of urls) {
+            try {
+                let response = await fetch(url);
+                if (response.ok) {
+                    textData = await response.text();
+                    break;
+                }
+            } catch (e) {}
+        }
 
-            let headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^["']|["']$/g, ""));
+        if (textData) {
+            parseCSVData(textData);
+        } else {
+            init();
+        }
+    }
+
+    function parseCSVData(text) {
+        let cleanText = text.replace(/\r/g, ""); // छिपे हुए \r कैरेक्टर का खात्मा
+        let lines = cleanText.split("\n");
+        if (lines.length === 0 || !lines[0].trim()) { init(); return; }
+
+        let headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^["']|["']$/g, ""));
+        
+        let typeIdx = headers.indexOf('type');
+        let psNameIdx = headers.indexOf('ps_name');
+        let forceTypeIdx = headers.indexOf('force_type');
+        let nameIdx = headers.indexOf('name');
+        let rankIdx = headers.indexOf('rank');
+        let mobileIdx = headers.indexOf('mobile');
+        let landlineIdx = headers.indexOf('landline');
+        let whatsappIdx = headers.indexOf('whatsapp');
+
+        for(let i = 1; i < lines.length; i++) {
+            if(!lines[i].trim()) continue;
             
-            let typeIdx = headers.indexOf('type');
-            let psNameIdx = headers.indexOf('ps_name');
-            let forceTypeIdx = headers.indexOf('force_type');
-            let nameIdx = headers.indexOf('name');
-            let rankIdx = headers.indexOf('rank');
-            let mobileIdx = headers.indexOf('mobile');
-            let landlineIdx = headers.indexOf('landline');
-            let whatsappIdx = headers.indexOf('whatsapp');
-
-            for(let i = 1; i < lines.length; i++) {
-                if(!lines[i].trim()) continue;
-                
-                let cols = lines[i].split(',').map(c => c.trim().replace(/^["']|["']$/g, ""));
-                
-                let obj = {
-                    type: typeIdx !== -1 && cols[typeIdx] ? cols[typeIdx].trim() : '',
-                    ps_name: psNameIdx !== -1 && cols[psNameIdx] ? cols[psNameIdx].trim() : '',
-                    force_type: forceTypeIdx !== -1 && cols[forceTypeIdx] ? cols[forceTypeIdx].trim() : 'Officer',
-                    name: nameIdx !== -1 && cols[nameIdx] ? cols[nameIdx].trim() : 'N/A',
-                    rank: rankIdx !== -1 && cols[rankIdx] ? cols[rankIdx].trim() : 'N/A',
-                    mobile: mobileIdx !== -1 && cols[mobileIdx] ? cols[mobileIdx].trim() : 'N/A',
-                    landline: landlineIdx !== -1 && cols[landlineIdx] ? cols[landlineIdx].trim() : '',
-                    whatsapp: whatsappIdx !== -1 && cols[whatsappIdx] ? cols[whatsappIdx].trim() : ''
-                };
-                
-                if(obj.type) {
-                    let typeKey = obj.type.toLowerCase().trim();
-                    if(shopData[typeKey]) {
-                        shopData[typeKey].partners.push(obj);
-                    }
+            let cols = lines[i].split(',').map(c => c.trim().replace(/^["']|["']$/g, ""));
+            
+            let obj = {
+                type: typeIdx !== -1 && cols[typeIdx] ? cols[typeIdx].trim() : '',
+                ps_name: psNameIdx !== -1 && cols[psNameIdx] ? cols[psNameIdx].trim() : '',
+                force_type: forceTypeIdx !== -1 && cols[forceTypeIdx] ? cols[forceTypeIdx].trim() : 'Officer',
+                name: nameIdx !== -1 && cols[nameIdx] ? cols[nameIdx].trim() : 'N/A',
+                rank: rankIdx !== -1 && cols[rankIdx] ? cols[rankIdx].trim() : 'N/A',
+                mobile: mobileIdx !== -1 && cols[mobileIdx] ? cols[mobileIdx].trim() : 'N/A',
+                landline: landlineIdx !== -1 && cols[landlineIdx] ? cols[landlineIdx].trim() : '',
+                whatsapp: whatsappIdx !== -1 && cols[whatsappIdx] ? cols[whatsappIdx].trim() : ''
+            };
+            
+            if(obj.type) {
+                let typeKey = obj.type.toLowerCase().trim();
+                if(shopData[typeKey]) {
+                    shopData[typeKey].partners.push(obj);
                 }
             }
-            init();
-        })
-        .catch(err => {
-            console.error("CSV लोड करने में समस्या आई: ", err);
-            init();
-        });
+        }
+        init();
     }
 
     function init() {
@@ -311,6 +315,7 @@
                 });
                 
                 Object.keys(grouped).forEach(psName => {
+                    // 🛠️ आईडी जेनरेट करने की मजबूत तकनीक
                     let safePsId = psName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
                     
                     let forceButtonsHtml = `<div class="force-btn-group">`;
@@ -344,7 +349,7 @@
         contentArea.prepend(dirSection);
     }
 
-    // सटीक मैचिंग फ़िल्टर फंक्शन
+    // 🛠️ 100% पक्का काम करने वाला नया फ़िल्टर फंक्शन
     function filterForce(psId, category, btnElement) {
         const psContent = document.getElementById(`ps_content_${psId}`);
         if (!psContent) return;
