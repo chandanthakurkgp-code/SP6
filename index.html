@@ -166,9 +166,6 @@
 </div>
 
 <script>
-    // 🎯 आपकी असली GOOGLE SHEET ID यहाँ सेट कर दी गई है:
-    const GOOGLE_SHEET_ID = "1LbFP7NdtIiibVAMqnYtCQVfwrj8UrUxN"; 
-
     let shopData = {
         "asp": { title: "ASP", partners: [] },
         "sdpo": { title: "SDPO", partners: [] },
@@ -202,6 +199,7 @@
 
     function goHome() { location.reload(); }
 
+    // एकॉर्डियन टॉगल
     function togglePS(header) {
         const content = header.nextElementSibling;
         const icon = header.querySelector('.ps-icon');
@@ -220,16 +218,18 @@
             document.body.classList.add('night-mode');
             updateModeButton(true);
         }
-        loadGoogleSheetData();
+        loadLocalCSVData();
     };
 
-    function loadGoogleSheetData() {
-        const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/export?format=csv`;
+    // गिटहब की अपनी 'data.csv' को बिना एरर और कैशे बस्टिंग के साथ लोड करना
+    function loadLocalCSVData() {
+        // ?v=Date.now() लगाने से गिटहब हमेशा फ्रेश और नया डेटा लोड करेगा
+        const url = 'data.csv?v=' + Date.now();
 
         fetch(url)
         .then(response => response.text())
         .then(text => {
-            // पूरे टेक्स्ट से छिपे हुए \r कैरेक्टर को साफ़ करना (ताकि बटन्स 100% काम करें)
+            // पूरे एक्सेल टेक्स्ट से हिडन \r कैरेक्टर साफ़ करना (ताकि बटन्स काम करें)
             let cleanText = text.replace(/\r/g, "");
             let lines = cleanText.split("\n");
             if (lines.length === 0 || !lines[0].trim()) { init(); return; }
@@ -271,7 +271,7 @@
             init();
         })
         .catch(err => {
-            console.error("Google Sheet लोड करने में समस्या आई: ", err);
+            console.error("CSV लोड करने में समस्या आई: ", err);
             init();
         });
     }
@@ -344,6 +344,7 @@
         contentArea.prepend(dirSection);
     }
 
+    // सटीक मैचिंग फ़िल्टर फंक्शन
     function filterForce(psId, category, btnElement) {
         const psContent = document.getElementById(`ps_content_${psId}`);
         if (!psContent) return;
