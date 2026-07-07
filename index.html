@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SUPERINTENDENT OF POLICE – Paschim Medinipur</title>
     <style>
-        /* स्ट्रक्चर को सुरक्षित रखते हुए सभी रंगों को पूरी तरह केसरिया (Saffron) थीम में रखा गया है */
+        /* आपका ओरिजिनल स्ट्रक्चर और खूबसूरत केसरिया (Saffron) थीम बिल्कुल पहले जैसा सुरक्षित है */
         * { box-sizing: border-box; transition: background 0.3s, color 0.3s; }
         
         :root { 
@@ -84,13 +84,9 @@
         .search-container { background: var(--dark-bg); padding: 0 15px 15px 15px; border-bottom: 3px solid var(--light-green); }
         .global-search-bar { width: 100%; max-width: 600px; padding: 15px; border-radius: 50px; border: 3px solid var(--light-green); font-size: 18px; display: block; margin: 0 auto; outline: none; }
 
-        /* मुख्य मेनू बार को स्क्रॉल फ्रेंडली बनाया गया है ताकि सभी 9 बटन्स मोबाइल पर अच्छे से दिखें */
         .nav-container { background-color: var(--dark-bg); padding: 15px 0; position: sticky; top: 0; z-index: 1000; display: flex; gap: 10px; border-bottom: 4px solid var(--light-green); overflow-x: auto; padding-left: 10px; scrollbar-width: none; }
-        .nav-container::-webkit-scrollbar { display: none; }
         .tab-btn { font-size: 14px; padding: 10px 20px; font-weight: 900; cursor: pointer; border-radius: 50px; background-color: var(--light-green); color: #fff; border: none; white-space: nowrap; box-shadow: 0 4px 0 var(--green-shadow); }
-        
-        /* एक्टिव होने पर नाम साफ दिखेगा */
-        .tab-btn.active { background-color: #fff !important; color: #000000 !important; transform: translateY(3px); box-shadow: 0 2px 0 var(--green-shadow); }
+        .tab-btn.active { background-color: #fff; color: var(--text-color); transform: translateY(3px); box-shadow: 0 2px 0 var(--green-shadow); }
 
         .container { padding: 15px; max-width: 1100px; margin: auto; padding-bottom: 120px; }
         .section { display: none; }
@@ -155,7 +151,6 @@
     <input type="text" id="globalSearch" class="global-search-bar" placeholder="खोजें..." onkeyup="globalFilter()">
 </div>
 
-<!-- मुख्य मेनू बार -->
 <div class="nav-container" id="tabMenu"></div>
 <div class="container" id="contentArea"></div>
 
@@ -166,23 +161,20 @@
 </div>
 
 <script>
-    const GOOGLE_SHEET_ID = "1LbFP7NdtIiibVAMqnYtCQVfwrj8UrUxN"; 
-
-    // आपके विचार के अनुसार बनाए गए सभी 9 मुख्य टैब्स
+    // 🛠️ आपके विचार के अनुसार मुख्य मेनू में 5 नए चालू बटन्स (टैब्स) जोड़े गए हैं
     let shopData = {
-        "directory": { title: "📂 DIRECTORY", isForceTab: false },
-        "asp": { title: "ASP", isForceTab: false, filterType: "asp" },
-        "sdpo": { title: "SDPO", isForceTab: false, filterType: "sdpo" },
-        "police_stations": { title: "OFFICER", isForceTab: true, forceType: "officer" },
-        "constable": { title: "CONSTABLE", isForceTab: true, forceType: "constable" },
-        "hg": { title: "HG", isForceTab: true, forceType: "hg" },
-        "nvf": { title: "NVF", isForceTab: true, forceType: "nvf" },
-        "cv": { title: "CV", isForceTab: true, forceType: "cv" },
-        "driver": { title: "DRIVER", isForceTab: true, forceType: "driver" }
+        "asp": { title: "ASP", partners: [] },
+        "sdpo": { title: "SDPO", partners: [] },
+        "police_stations": { title: "POLICE STATIONS", partners: [] },
+        "constable": { title: "CONSTABLE", partners: [] },
+        "hg": { title: "HG", partners: [] },
+        "nvf": { title: "NVF", partners: [] },
+        "cv": { title: "CV", partners: [] },
+        "driver": { title: "DRIVER", partners: [] }
     };
 
-    // शुद्ध मास्टर डेटा लिस्ट
-    let masterPartnersList = [];
+    // थाना ग्रुपिंग के लिए कौन-कौन से टैब उत्तरदायी हैं
+    const stationGroupKeys = ["police_stations", "constable", "hg", "nvf", "cv", "driver"];
 
     function toggleNightMode() {
         document.body.classList.toggle('night-mode');
@@ -227,13 +219,15 @@
             document.body.classList.add('night-mode');
             updateModeButton(true);
         }
-        loadCombinedData();
+        loadCSVWithFallbacks();
     };
 
-    async function loadCombinedData() {
+    async function loadCSVWithFallbacks() {
+        // कैशे की समस्या दूर करने के लिए डेट टाइम स्टैम्प के साथ फ्रेश लोडिंग लॉजिक
         const urls = [
-            'data.csv?v=' + Date.now(), 
-            `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/export?format=csv&gid=0`
+            'data.csv?v=' + Date.now(),
+            'https://raw.githubusercontent.com/chandanthakurkgp-code/SP6/main/data.csv?v=' + Date.now(),
+            'https://raw.githubusercontent.com/chandanthakurkgp-code/SP6/master/data.csv?v=' + Date.now()
         ];
 
         let textData = null;
@@ -250,14 +244,14 @@
         if (textData) {
             parseCSVData(textData);
         } else {
-            renderWebsite();
+            init();
         }
     }
 
     function parseCSVData(text) {
         let cleanText = text.replace(/\r/g, ""); 
         let lines = cleanText.split("\n");
-        if (lines.length === 0 || !lines[0].trim()) { renderWebsite(); return; }
+        if (lines.length === 0 || !lines[0].trim()) { init(); return; }
 
         let headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^["']|["']$/g, ""));
         
@@ -287,149 +281,95 @@
             };
             
             if(obj.type) {
-                masterPartnersList.push(obj);
+                if (obj.type === "police_stations") {
+                    let forceKey = obj.force_type.toLowerCase().trim();
+                    // अगर मुख्य पुलिस स्टेशन है और फ़ोर्स 'officer' है, तो उसे POLICE STATIONS टैब में डालें
+                    if (forceKey === "officer") {
+                        shopData["police_stations"].partners.push(obj);
+                    } else if (shopData[forceKey]) {
+                        // बाकी अन्य विशिष्ट फ़ोर्स (Constable, CV, HG आदि) को उनके अपने मुख्य टैब में डालें
+                        shopData[forceKey].partners.push(obj);
+                    }
+                } else if(shopData[obj.type]) {
+                    shopData[obj.type].partners.push(obj);
+                }
             }
         }
-        renderWebsite();
+        init();
     }
 
-    // आपके नए आईडिया के अनुसार पूरे 9 टैब का आर्किटेक्चर रेंडर करने वाला फंक्शन
-    function renderWebsite() {
+    function init() {
+        // सभी थानों के डेटा को सॉर्ट करना
+        stationGroupKeys.forEach(key => {
+            if(shopData[key] && shopData[key].partners) {
+                shopData[key].partners.sort((a, b) => a.ps_name.localeCompare(b.ps_name));
+            }
+        });
+        
         const tabMenu = document.getElementById('tabMenu');
         const contentArea = document.getElementById('contentArea');
         
         tabMenu.innerHTML = "";
         contentArea.innerHTML = "";
 
-        // 1. मेनू बटन्स का निर्माण
-        Object.keys(shopData).forEach((key, index) => {
-            const btn = document.createElement('button');
-            btn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
-            btn.innerText = shopData[key].title;
-            btn.onclick = (e) => showSection(key, e.target);
-            tabMenu.appendChild(btn);
-        });
+        createTab("📂 DIRECTORY", "directory", true);
+        Object.keys(shopData).forEach(key => createTab(shopData[key].title, key, false));
 
-        // 2. हर एक मुख्य टैब का कंटेंट एरिया तैयार करना
-        Object.keys(shopData).forEach((key, index) => {
+        const dirSection = document.createElement('div');
+        dirSection.id = 'directory';
+        dirSection.className = "section active";
+        
+        let allHtml = "";
+
+        Object.keys(shopData).forEach(key => {
             const section = document.createElement('div');
             section.id = key;
-            section.className = `section ${index === 0 ? 'active' : ''}`;
-            
+            section.className = "section";
             let html = "";
-            let targetData = [];
-
-            if (key === "directory") {
-                // डायरेक्टरी टैब में सब कुछ दिखेगा
-                targetData = rawPoliceDataFilter('', '');
-                html = renderPoliceStationGroups(targetData);
-            } else if (key === "asp" || key === "sdpo") {
-                // ASP और SDPO टैब
-                let filtered = rawPoliceData.filter(p => p.type === key);
-                html = filtered.map(p => createCard(p)).join('');
-            } else if (key === "police_stations") {
-                // पुलिस स्टेशन टैब में डिफ़ॉल्ट रूप से सभी थानों का पूरा डेटा
-                html = renderGroupedStations(rawPoliceData.filter(p => p.type === "police_stations"), "");
+            
+            // अगर यह मुख्य फ़ोर्स वाले टैब हैं, तो इनमें थाना ग्रुपिंग एकॉर्डियन बनेगा
+            if (stationGroupKeys.includes(key)) {
+                const grouped = {};
+                shopData[key].partners.forEach(p => {
+                    let psName = p.ps_name || 'Unknown';
+                    if (!grouped[psName]) grouped[psName] = [];
+                    grouped[psName].push(p);
+                });
+                Object.keys(grouped).forEach(psName => {
+                    html += `
+                        <div class="ps-header" onclick="togglePS(this)">
+                            <span>🚨 ${psName} Police Station</span>
+                            <span class="ps-icon">▼</span>
+                        </div>
+                        <div class="ps-content">
+                            ${grouped[psName].map(p => createCard(p)).join('')}
+                        </div>`;
+                });
+            } else {
+                html = shopData[key].partners.map(p => createCard(p)).join('');
             }
-
+            
             section.innerHTML = html;
+            allHtml += html;
             contentArea.appendChild(section);
         });
-
-        // विशेष सब-फोर्स फ़िल्टर के लिए अलग से टैब जनरेट करना (Officer, Constable, HG आदि)
-        ["officer", "constable", "hg", "nvf", "cv", "driver"].forEach(force => {
-            const section = document.getElementById(force) || document.createElement('div');
-            if(!section.id) {
-                section.id = force;
-                section.className = "section";
-                contentArea.appendChild(section);
-            }
-            
-            // पुलिस स्टेशन्स के डेटा को सिर्फ इस फ़ोर्स टाइप के अनुसार फ़िल्टर करना
-            let filteredForce = rawPoliceData.filter(p => p.type === "police_stations" && p.force_type.toLowerCase() === force);
-            let html = "";
-            const grouped = {};
-            
-            filteredForce.forEach(p => {
-                if (!grouped[p.ps_name]) grouped[p.ps_name] = [];
-                grouped[p.ps_name].push(p);
-            });
-
-            Object.keys(grouped).sort().forEach(psName => {
-                html += `
-                    <div class="ps-header" onclick="togglePS(this)">
-                        <span>🚨 ${psName} (${force.toUpperCase()})</span>
-                        <span class="ps-icon">▼</span>
-                    </div>
-                    <div class="ps-content">
-                        ${grouped[psName].map(p => createCard(p)).join('')}
-                    </div>`;
-            });
-
-            if(!html) html = `<div style="text-align:center; padding:40px; color:var(--card-text-mute);">इस फ़ोर्स में कोई डेटा नहीं मिला।</div>`;
-            section.innerHTML = html;
-        });
-    }
-
-    // मास्टर लिस्ट या बैकअप लिस्ट से डेटा फ़िल्टर करना
-    function rawPoliceDataFilter(type, force) {
-        let source = masterPartnersList.length > 0 ? masterPartnersList : [];
-        if(type) source = source.filter(p => p.type === type);
-        if(force) source = source.filter(p => p.force_type.toLowerCase() === force.toLowerCase());
-        return source;
-    }
-
-    // थानों को ग्रुप करके एकॉर्डियन व्यू में दिखाना
-    function renderGroupedStations(list, specificForce) {
-        const grouped = {};
-        list.forEach(p => {
-            if(specificForce && p.force_type.toLowerCase() !== specificForce.toLowerCase()) return;
-            let psName = p.ps_name || 'Unknown';
-            if (!grouped[psName]) grouped[psName] = [];
-            grouped[psName].push(p);
-        });
         
-        let html = "";
-        Object.keys(grouped).sort().forEach(psName => {
-            html += `
-                <div class="ps-header" onclick="togglePS(this)">
-                    <span>🚨 ${psName} Police Station</span>
-                    <span class="ps-icon">▼</span>
-                </div>
-                <div class="ps-content">
-                    ${grouped[psName].map(p => createCard(p)).join('')}
-                </div>`;
-        });
-        return html || `<div style="text-align:center; padding:40px; color:var(--card-text-mute);">कोई डेटा उपलब्ध नहीं है।</div>`;
+        dirSection.innerHTML = allHtml;
+        contentArea.prepend(dirSection);
     }
 
-    function renderPoliceStationGroups(list) {
-        const grouped = {};
-        list.forEach(p => {
-            if(p.type !== "police_stations") return;
-            let psName = p.ps_name || 'Unknown';
-            if (!grouped[psName]) grouped[psName] = [];
-            grouped[psName].push(p);
-        });
-        
-        let html = "";
-        Object.keys(grouped).sort().forEach(psName => {
-            html += `
-                <div class="ps-header" onclick="togglePS(this)">
-                    <span>🚨 ${psName} Police Station</span>
-                    <span class="ps-icon">▼</span>
-                </div>
-                <div class="ps-content">
-                    ${grouped[psName].map(p => createCard(p)).join('')}
-                </div>`;
-        });
-        return html;
+    function createTab(text, id, active) {
+        const btn = document.createElement('button');
+        btn.className = `tab-btn ${active ? 'active' : ''}`;
+        btn.innerText = text;
+        btn.onclick = (e) => showSection(id, e.target);
+        document.getElementById('tabMenu').appendChild(btn);
     }
 
     function createCard(p) {
         let forceType = (p.force_type || 'Officer').trim();
         return `
-            <div class="list-card" data-force="${forceType}">
+            <div class="list-card">
                 <h3 style="color:var(--police-blue); margin-top:0; font-weight:900; font-size: 20px;">${p.name || 'N/A'}</h3>
                 <p>🎖️ <b>Rank:</b> ${p.rank || 'N/A'} (${forceType})</p>
                 <p>📞 <b>Mobile:</b> ${p.mobile || 'N/A'}</p>
@@ -444,13 +384,7 @@
     function showSection(id, btn) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        
-        // विशेष फ़ोर्स टैब की कंडीशन चेकिंग
-        const forceIds = ["officer", "constable", "hg", "nvf", "cv", "driver"];
-        let targetId = id.toLowerCase();
-        if(id === "police_stations") targetId = "officer"; // ओल्ड बैकवर्ड कम्पैटिबिलिटी
-
-        const target = document.getElementById(targetId) || document.getElementById(id);
+        const target = document.getElementById(id);
         if (target) target.classList.add('active');
         btn.classList.add('active');
     }
