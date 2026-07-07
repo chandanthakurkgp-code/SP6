@@ -87,7 +87,7 @@
         .nav-container { background-color: var(--dark-bg); padding: 15px 0; position: sticky; top: 0; z-index: 1000; display: flex; gap: 10px; border-bottom: 4px solid var(--light-green); overflow-x: auto; padding-left: 10px; scrollbar-width: none; }
         .tab-btn { font-size: 14px; padding: 10px 20px; font-weight: 900; cursor: pointer; border-radius: 50px; background-color: var(--light-green); color: #fff; border: none; white-space: nowrap; box-shadow: 0 4px 0 var(--green-shadow); }
         
-        /* 🛠️ नाइट मोड में बटन का नाम गायब होने से रोकने के लिए टेक्स्ट का कलर ब्लैक (#000) फिक्स किया गया है */
+        /* नाइट मोड में बटन का नाम गायब होने से रोकने के लिए टेक्स्ट का कलर ब्लैक (#000) फिक्स किया गया है */
         .tab-btn.active { background-color: #fff !important; color: #000000 !important; transform: translateY(3px); box-shadow: 0 2px 0 var(--green-shadow); }
 
         .container { padding: 15px; max-width: 1100px; margin: auto; padding-bottom: 120px; }
@@ -168,7 +168,7 @@
 </div>
 
 <script>
-    // 🎯 आपकी शीट आईडी बैकअप के लिए सुरक्षित रखी गई है
+    // 🎯 आपकी शीट आईडी बैकअप के लिए सुरक्षित है
     const GOOGLE_SHEET_ID = "1LbFP7NdtIiibVAMqnYtCQVfwrj8UrUxN"; 
 
     let shopData = {
@@ -204,6 +204,19 @@
 
     function goHome() { location.reload(); }
 
+    // 🛠️ वापस जोड़ा गया एकॉर्डियन ओपन/क्लोज़ फंक्शन (इसके बिना थाना नहीं खुल रहा था)
+    function togglePS(header) {
+        const content = header.nextElementSibling;
+        const icon = header.querySelector('.ps-icon');
+        if (content.classList.contains('open')) {
+            content.classList.remove('open');
+            icon.innerText = '▼';
+        } else {
+            content.classList.add('open');
+            icon.innerText = '▲';
+        }
+    }
+
     window.onload = function() {
         const savedTheme = localStorage.getItem('theme');
         if(savedTheme === 'night') {
@@ -213,10 +226,9 @@
         loadCombinedData();
     };
 
-    // गिटहब CSV और गूगल शीट दोनों को संभालने वाला ऑटोमैटिक सिस्टम (कैशे बस्टर के साथ)
     async function loadCombinedData() {
         const urls = [
-            'data.csv?v=' + Date.now(), // गिटहब लोकल फ़ाइल (सबसे तेज़ और सुरक्षित)
+            'data.csv?v=' + Date.now(), 
             `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/export?format=csv&gid=0`
         ];
 
@@ -239,7 +251,7 @@
     }
 
     function parseCSVData(text) {
-        let cleanText = text.replace(/\r/g, ""); // छिपे हुए \r कैरेक्टर का खात्मा
+        let cleanText = text.replace(/\r/g, ""); 
         let lines = cleanText.split("\n");
         if (lines.length === 0 || !lines[0].trim()) { init(); return; }
 
@@ -315,7 +327,6 @@
                 });
                 
                 Object.keys(grouped).forEach(psName => {
-                    // 🛠️ आईडी जेनरेट करने की मजबूत तकनीक
                     let safePsId = psName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
                     
                     let forceButtonsHtml = `<div class="force-btn-group">`;
@@ -349,7 +360,6 @@
         contentArea.prepend(dirSection);
     }
 
-    // 🛠️ 100% पक्का काम करने वाला नया फ़िल्टर फंक्शन
     function filterForce(psId, category, btnElement) {
         const psContent = document.getElementById(`ps_content_${psId}`);
         if (!psContent) return;
