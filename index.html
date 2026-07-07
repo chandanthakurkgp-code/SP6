@@ -15,16 +15,16 @@
             --dark-bg: #1a1a1a; 
             --white-bg: #ffffff; 
             --text-color: #000000;
-            --card-text-mute: #555555; /* लाइट मोड में लेबल का रंग */
+            --card-text-mute: #555555; 
             --card-bg: #ffffff;
-            --btn-blue: #d32f2f;      /* गहरा सिंदूरी/लाल-केसरिया रंग */
-            --btn-orange: #FF9933;   /* हल्का भगवा रंग */
+            --btn-blue: #d32f2f;      
+            --btn-orange: #FF9933;   
         }
 
         body.night-mode {
             --white-bg: #121212;
             --text-color: #ffffff;
-            --card-text-mute: #dddddd; /* नाइट मोड में लेबल का रंग (ताकि साफ़ दिखे) */
+            --card-text-mute: #dddddd; 
             --card-bg: #1e1e1e;
             --dark-bg: #000000;
         }
@@ -38,7 +38,6 @@
             transform-origin: top center;
         }
 
-        /* हेडर सेक्शन केसरिया */
         .main-header { 
             text-align: center; 
             background-color: var(--police-blue); 
@@ -93,7 +92,6 @@
         .section { display: none; }
         .section.active { display: block; }
         
-        /* कार्ड बॉर्डर स्टाइल - टेक्स्ट कलर को वेरिएबल से जोड़ा गया है */
         .list-card { background: var(--card-bg); padding: 20px; border-radius: 20px; border: 5px solid var(--light-green); margin-bottom: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); color: var(--text-color); }
         .list-card p { color: var(--card-text-mute); margin: 8px 0; }
         .list-card p b { color: var(--text-color); }
@@ -106,7 +104,6 @@
         .ps-content { display: none; padding-top: 10px; }
         .ps-content.open { display: block; }
 
-        /* फ़ोर्स फ़िल्टर बटन ग्रुप स्टाइल */
         .force-btn-group { display: flex; gap: 6px; overflow-x: auto; padding: 5px 0 12px 0; margin-bottom: 15px; border-bottom: 1px dashed var(--light-green); scrollbar-width: none; }
         .force-btn-group::-webkit-scrollbar { display: none; }
         .force-btn { padding: 10px 18px; background-color: var(--dark-bg); color: #fff; border: 2px solid var(--light-green); border-radius: 20px; font-size: 12px; font-weight: 900; cursor: pointer; white-space: nowrap; box-shadow: 0 3px 0 var(--green-shadow); }
@@ -169,6 +166,9 @@
 </div>
 
 <script>
+    // ⚠️ यहाँ अपनी असली GOOGLE SHEET ID डालें:
+    const GOOGLE_SHEET_ID = "1A_BcDeFgHiJkLmNoPqRsTuVwXyZ"; 
+
     let shopData = {
         "asp": { title: "ASP", partners: [] },
         "sdpo": { title: "SDPO", partners: [] },
@@ -220,84 +220,65 @@
             document.body.classList.add('night-mode');
             updateModeButton(true);
         }
-        loadCSVWithFallbacks();
+        loadGoogleSheetData();
     };
 
-    async function loadCSVWithFallbacks() {
-        const urls = [
-            'https://raw.githubusercontent.com/chandanthakurkgp-code/SP6/main/data.csv',
-            'https://raw.githubusercontent.com/chandanthakurkgp-code/SP6/master/data.csv',
-            'data.csv'
-        ];
+    function loadGoogleSheetData() {
+        const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/export?format=csv`;
 
-        let textData = null;
-        for (let url of urls) {
-            try {
-                let response = await fetch(url);
-                if (response.ok) {
-                    textData = await response.text();
-                    break;
-                }
-            } catch (e) {}
-        }
+        fetch(url)
+        .then(response => response.text())
+        .then(text => {
+            // पूरे टेक्स्ट से \r (Carriage Return) को पूरी तरह हटाना ताकि कोई हिडन कैरेक्टर न बचे
+            let cleanText = text.replace(/\r/g, "");
+            let lines = cleanText.split("\n");
+            if (lines.length === 0 || !lines[0].trim()) { init(); return; }
 
-        if (textData) {
-            parseCSVData(textData);
-        } else {
-            init();
-        }
-    }
-
-    function parseCSVData(text) {
-        let lines = text.split(/\r?\n/);
-        if (lines.length === 0 || !lines[0].trim()) { init(); return; }
-
-        let separator = lines[0].includes(';') ? ';' : ',';
-        let headers = lines[0].split(separator).map(h => h.trim().toLowerCase().replace(/^["']|["']$/g, ""));
-        
-        // कॉलम इंडेक्स का पता लगाना ताकि कोई गड़बड़ न हो
-        let typeIdx = headers.indexOf('type');
-        let psNameIdx = headers.indexOf('ps_name');
-        let forceTypeIdx = headers.indexOf('force_type');
-        let nameIdx = headers.indexOf('name');
-        let rankIdx = headers.indexOf('rank');
-        let mobileIdx = headers.indexOf('mobile');
-        let landlineIdx = headers.indexOf('landline');
-        let whatsappIdx = headers.indexOf('whatsapp');
-
-        for(let i = 1; i < lines.length; i++) {
-            if(!lines[i].trim()) continue;
+            let headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^["']|["']$/g, ""));
             
-            let cols = lines[i].split(separator).map(c => c.trim().replace(/^["']|["']$/g, ""));
-            
-            let obj = {
-                type: typeIdx !== -1 && cols[typeIdx] ? cols[typeIdx] : '',
-                ps_name: psNameIdx !== -1 && cols[psNameIdx] ? cols[psNameIdx] : '',
-                force_type: forceTypeIdx !== -1 && cols[forceTypeIdx] ? cols[forceTypeIdx] : 'Officer',
-                name: nameIdx !== -1 && cols[nameIdx] ? cols[nameIdx] : 'N/A',
-                rank: rankIdx !== -1 && cols[rankIdx] ? cols[rankIdx] : 'N/A',
-                mobile: mobileIdx !== -1 && cols[mobileIdx] ? cols[mobileIdx] : 'N/A',
-                landline: landlineIdx !== -1 && cols[landlineIdx] ? cols[landlineIdx] : '',
-                whatsapp: whatsappIdx !== -1 && cols[whatsappIdx] ? cols[whatsappIdx] : ''
-            };
-            
-            if(obj.type) {
-                let typeKey = obj.type.toLowerCase().trim();
-                if(shopData[typeKey]) {
-                    shopData[typeKey].partners.push(obj);
+            let typeIdx = headers.indexOf('type');
+            let psNameIdx = headers.indexOf('ps_name');
+            let forceTypeIdx = headers.indexOf('force_type');
+            let nameIdx = headers.indexOf('name');
+            let rankIdx = headers.indexOf('rank');
+            let mobileIdx = headers.indexOf('mobile');
+            let landlineIdx = headers.indexOf('landline');
+            let whatsappIdx = headers.indexOf('whatsapp');
+
+            for(let i = 1; i < lines.length; i++) {
+                if(!lines[i].trim()) continue;
+                
+                let cols = lines[i].split(',').map(c => c.trim().replace(/^["']|["']$/g, ""));
+                
+                let obj = {
+                    type: typeIdx !== -1 && cols[typeIdx] ? cols[typeIdx].trim() : '',
+                    ps_name: psNameIdx !== -1 && cols[psNameIdx] ? cols[psNameIdx].trim() : '',
+                    force_type: forceTypeIdx !== -1 && cols[forceTypeIdx] ? cols[forceTypeIdx].trim() : 'Officer',
+                    name: nameIdx !== -1 && cols[nameIdx] ? cols[nameIdx].trim() : 'N/A',
+                    rank: rankIdx !== -1 && cols[rankIdx] ? cols[rankIdx].trim() : 'N/A',
+                    mobile: mobileIdx !== -1 && cols[mobileIdx] ? cols[mobileIdx].trim() : 'N/A',
+                    landline: landlineIdx !== -1 && cols[landlineIdx] ? cols[landlineIdx].trim() : '',
+                    whatsapp: whatsappIdx !== -1 && cols[whatsappIdx] ? cols[whatsappIdx].trim() : ''
+                };
+                
+                if(obj.type) {
+                    let typeKey = obj.type.toLowerCase().trim();
+                    if(shopData[typeKey]) {
+                        shopData[typeKey].partners.push(obj);
+                    }
                 }
             }
-        }
-        init();
+            init();
+        })
+        .catch(err => {
+            console.error("Google Sheet लोड करने में समस्या आई: ", err);
+            init();
+        });
     }
 
     function init() {
         if(shopData.police_stations && shopData.police_stations.partners) {
-            shopData.police_stations.partners.sort((a, b) => {
-                let nameA = a.ps_name || '';
-                let nameB = b.ps_name || '';
-                return nameA.localeCompare(nameB);
-            });
+            shopData.police_stations.partners.sort((a, b) => a.ps_name.localeCompare(b.ps_name));
         }
         
         const tabMenu = document.getElementById('tabMenu');
@@ -363,7 +344,7 @@
         contentArea.prepend(dirSection);
     }
 
-    // सटीक मैचिंग के साथ सुधारा गया फ़िल्टर फ़ंक्शन
+    // अब यह फ़ंक्शन बिना किसी एरर के 100% सही फ़िल्टर करेगा
     function filterForce(psId, category, btnElement) {
         const psContent = document.getElementById(`ps_content_${psId}`);
         if (!psContent) return;
@@ -374,12 +355,14 @@
 
         const cards = psContent.querySelectorAll('.list-card');
         cards.forEach(card => {
-            const cardForce = card.getAttribute('data-force') || '';
-            // छोटे-बड़े अक्षरों और खाली जगह (Spaces) को क्लीन करके मैच करना
-            if (category === 'ALL' || cardForce.toLowerCase().trim() === category.toLowerCase().trim()) {
-                card.style.display = 'block';
+            // लोअरकेस और ट्रिम करके क्लीन मैचिंग करना
+            const cardForce = (card.getAttribute('data-force') || '').toLowerCase().trim();
+            const targetCategory = category.toLowerCase().trim();
+
+            if (targetCategory === 'all' || cardForce === targetCategory) {
+                card.style.setProperty('display', 'block', 'important');
             } else {
-                card.style.display = 'none';
+                card.style.setProperty('display', 'none', 'important');
             }
         });
     }
@@ -396,7 +379,7 @@
         let forceType = (p.force_type || 'Officer').trim();
         return `
             <div class="list-card" data-force="${forceType}">
-                <h3 style="color:var(--police-blue); margin-top:0; font-weight:900;">${p.name || 'N/A'}</h3>
+                <h3 style="color:var(--police-blue); margin-top:0; font-weight:900; font-size: 20px;">${p.name || 'N/A'}</h3>
                 <p>🎖️ <b>Rank:</b> ${p.rank || 'N/A'} (${forceType})</p>
                 <p>📞 <b>Mobile:</b> ${p.mobile || 'N/A'}</p>
                 <div class="btn-group">
