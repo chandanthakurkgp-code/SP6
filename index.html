@@ -166,8 +166,8 @@
 </div>
 
 <script>
-    // ⚠️ यहाँ अपनी असली GOOGLE SHEET ID डालें:
-    const GOOGLE_SHEET_ID = "1A_BcDeFgHiJkLmNoPqRsTuVwXyZ"; 
+    // 🎯 आपकी असली GOOGLE SHEET ID यहाँ सेट कर दी गई है:
+    const GOOGLE_SHEET_ID = "1LbFP7NdtIiibVAMqnYtCQVfwrj8UrUxN"; 
 
     let shopData = {
         "asp": { title: "ASP", partners: [] },
@@ -229,7 +229,7 @@
         fetch(url)
         .then(response => response.text())
         .then(text => {
-            // पूरे टेक्स्ट से \r (Carriage Return) को पूरी तरह हटाना ताकि कोई हिडन कैरेक्टर न बचे
+            // पूरे टेक्स्ट से छिपे हुए \r कैरेक्टर को साफ़ करना (ताकि बटन्स 100% काम करें)
             let cleanText = text.replace(/\r/g, "");
             let lines = cleanText.split("\n");
             if (lines.length === 0 || !lines[0].trim()) { init(); return; }
@@ -344,7 +344,6 @@
         contentArea.prepend(dirSection);
     }
 
-    // अब यह फ़ंक्शन बिना किसी एरर के 100% सही फ़िल्टर करेगा
     function filterForce(psId, category, btnElement) {
         const psContent = document.getElementById(`ps_content_${psId}`);
         if (!psContent) return;
@@ -355,7 +354,6 @@
 
         const cards = psContent.querySelectorAll('.list-card');
         cards.forEach(card => {
-            // लोअरकेस और ट्रिम करके क्लीन मैचिंग करना
             const cardForce = (card.getAttribute('data-force') || '').toLowerCase().trim();
             const targetCategory = category.toLowerCase().trim();
 
