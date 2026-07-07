@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SUPERINTENDENT OF POLICE – Paschim Medinipur</title>
     <style>
-        /* आपका ओरिजिनल स्ट्रक्चर और खूबसूरत केसरिया (Saffron) थीम बिल्कुल पहले जैसा सुरक्षित है */
+        /* स्ट्रक्चर और खूबसूरत केसरिया थीम बिल्कुल सुरक्षित है */
         * { box-sizing: border-box; transition: background 0.3s, color 0.3s; }
         
         :root { 
-            --police-blue: #FF6600;   /* मुख्य केसरिया/भगवा रंग */
-            --light-green: #FF7700;   /* थीम केसरिया: ब्राइट केसरिया */
-            --green-shadow: #cc4400;  /* गहरा केसरिया शैडो */
+            --police-blue: #FF6600;   
+            --light-green: #FF7700;   
+            --green-shadow: #cc4400;  
             --dark-bg: #1a1a1a; 
             --white-bg: #ffffff; 
             --text-color: #000000;
@@ -86,7 +86,14 @@
 
         .nav-container { background-color: var(--dark-bg); padding: 15px 0; position: sticky; top: 0; z-index: 1000; display: flex; gap: 10px; border-bottom: 4px solid var(--light-green); overflow-x: auto; padding-left: 10px; scrollbar-width: none; }
         .tab-btn { font-size: 14px; padding: 10px 20px; font-weight: 900; cursor: pointer; border-radius: 50px; background-color: var(--light-green); color: #fff; border: none; white-space: nowrap; box-shadow: 0 4px 0 var(--green-shadow); }
-        .tab-btn.active { background-color: #fff; color: var(--text-color); transform: translateY(3px); box-shadow: 0 2px 0 var(--green-shadow); }
+        
+        /* 🛠️ इसे पूरी तरह फिक्स किया गया है ताकि DIRECTORY सहित कोई भी बटन एक्टिव होने पर नाम छुपा न सके */
+        .tab-btn.active, .nav-container button.active, #tabMenu button.active { 
+            background-color: #ffffff !important; 
+            color: #000000 !important; 
+            transform: translateY(3px); 
+            box-shadow: 0 2px 0 var(--green-shadow); 
+        }
 
         .container { padding: 15px; max-width: 1100px; margin: auto; padding-bottom: 120px; }
         .section { display: none; }
@@ -161,7 +168,8 @@
 </div>
 
 <script>
-    // 🛠️ आपके विचार के अनुसार मुख्य मेनू में 5 नए चालू बटन्स (टैब्स) जोड़े गए हैं
+    const GOOGLE_SHEET_ID = "1LbFP7NdtIiibVAMqnYtCQVfwrj8UrUxN"; 
+
     let shopData = {
         "asp": { title: "ASP", partners: [] },
         "sdpo": { title: "SDPO", partners: [] },
@@ -173,7 +181,6 @@
         "driver": { title: "DRIVER", partners: [] }
     };
 
-    // थाना ग्रुपिंग के लिए कौन-कौन से टैब उत्तरदायी हैं
     const stationGroupKeys = ["police_stations", "constable", "hg", "nvf", "cv", "driver"];
 
     function toggleNightMode() {
@@ -223,7 +230,6 @@
     };
 
     async function loadCSVWithFallbacks() {
-        // कैशे की समस्या दूर करने के लिए डेट टाइम स्टैम्प के साथ फ्रेश लोडिंग लॉजिक
         const urls = [
             'data.csv?v=' + Date.now(),
             'https://raw.githubusercontent.com/chandanthakurkgp-code/SP6/main/data.csv?v=' + Date.now(),
@@ -283,11 +289,9 @@
             if(obj.type) {
                 if (obj.type === "police_stations") {
                     let forceKey = obj.force_type.toLowerCase().trim();
-                    // अगर मुख्य पुलिस स्टेशन है और फ़ोर्स 'officer' है, तो उसे POLICE STATIONS टैब में डालें
                     if (forceKey === "officer") {
                         shopData["police_stations"].partners.push(obj);
                     } else if (shopData[forceKey]) {
-                        // बाकी अन्य विशिष्ट फ़ोर्स (Constable, CV, HG आदि) को उनके अपने मुख्य टैब में डालें
                         shopData[forceKey].partners.push(obj);
                     }
                 } else if(shopData[obj.type]) {
@@ -299,7 +303,6 @@
     }
 
     function init() {
-        // सभी थानों के डेटा को सॉर्ट करना
         stationGroupKeys.forEach(key => {
             if(shopData[key] && shopData[key].partners) {
                 shopData[key].partners.sort((a, b) => a.ps_name.localeCompare(b.ps_name));
@@ -327,7 +330,6 @@
             section.className = "section";
             let html = "";
             
-            // अगर यह मुख्य फ़ोर्स वाले टैब हैं, तो इनमें थाना ग्रुपिंग एकॉर्डियन बनेगा
             if (stationGroupKeys.includes(key)) {
                 const grouped = {};
                 shopData[key].partners.forEach(p => {
