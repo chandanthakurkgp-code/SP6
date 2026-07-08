@@ -171,15 +171,17 @@
     let shopData = {
         "asp": { title: "ASP", partners: [] },
         "sdpo": { title: "SDPO", partners: [] },
+        "dysp": { title: "DySP", partners: [] },
+        "ci": { title: "CI", partners: [] },
         "police_stations": { title: "IC & OC", partners: [] },
-        "constable": { title: "SI & ASI", partners: [] },
-        "hg": { title: "CONSTABLE", partners: [] },
+        "si & asi": { title: "SI & ASI", partners: [] },
+        "constable": { title: "CONSTABLE", partners: [] },
         "nvf": { title: "NVF", partners: [] },
-        "cv": { title: "HG", partners: [] },
-        "driver": { title: "CV", partners: [] }
+        "hg": { title: "HG", partners: [] },
+        "cv": { title: "CV", partners: [] }
     };
 
-    const stationGroupKeys = ["police_stations", "constable", "hg", "nvf", "cv", "driver"];
+    const stationGroupKeys = ["police_stations", "si & asi", "constable", "nvf", "hg", "cv"];
 
     function toggleNightMode() {
         document.body.classList.toggle('night-mode');
