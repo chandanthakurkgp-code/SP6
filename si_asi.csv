@@ -1,0 +1,6 @@
+type,ps_name,force_type,name,rank,mobile,landline,whatsapp
+police_stations,Kharagpur Town,si & asi,Tarun Kumar,Sub-Inspector,9876543220,,9876543220
+police_stations,Kharagpur Town,si & asi,Biplab Das,Asst. Sub-Inspector,9876543221,,9876543221
+police_stations,Kharagpur Local,si & asi,Samir Patra,Sub-Inspector,9876543222,,9876543222
+police_stations,Kharagpur Local,si & asi,Dipak Guha,Asst. Sub-Inspector,9876543223,,9876543223
+police_stations,Midnapore Town,si & asi,Gourab Bose,Sub-Inspector,9876543224,,9876543224
