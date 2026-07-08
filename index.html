@@ -166,21 +166,21 @@
 </div>
 
 <script>
-    // मुख्य मेनू की कीज और उनके नाम बिल्कुल नए सिस्टम के अनुसार अरेंज कर दिए गए हैं
+    // 🛠️ 'si & asi' के नाम को फिक्स करके 'si_asi' कर दिया गया है ताकि कोड क्रैश न हो
     let shopData = {
         "asp": { title: "ASP", partners: [] },
         "sdpo": { title: "SDPO", partners: [] },
         "dysp": { title: "DySP", partners: [] },
         "ci": { title: "CI", partners: [] },
         "police_stations": { title: "IC & OC", partners: [] },
-        "si & asi": { title: "SI & ASI", partners: [] },
+        "si_asi": { title: "SI & ASI", partners: [] },
         "constable": { title: "CONSTABLE", partners: [] },
         "nvf": { title: "NVF", partners: [] },
         "hg": { title: "HG", partners: [] },
         "cv": { title: "CV", partners: [] }
     };
 
-    const stationGroupKeys = ["police_stations", "si & asi", "constable", "nvf", "hg", "cv"];
+    const stationGroupKeys = ["police_stations", "si_asi", "constable", "nvf", "hg", "cv"];
 
     function toggleNightMode() {
         document.body.classList.toggle('night-mode');
@@ -228,7 +228,6 @@
         loadAll6CSVFiles();
     };
 
-    // 🛠️ अब 6 अलग-अलग CSV फाइलों को एक साथ लोड करने का हाई-स्पीड फंक्शन
     async function loadAll6CSVFiles() {
         const cacheBuster = '?v=' + Date.now();
         
@@ -296,6 +295,9 @@
             if(obj.type) {
                 if (obj.type === "police_stations") {
                     let forceKey = obj.force_type.toLowerCase().trim();
+                    // विशेष फिक्स: 'si & asi' नाम को 'si_asi' की तरह मैप करना
+                    if (forceKey === "si & asi") forceKey = "si_asi";
+                    
                     if (forceKey === "officer") {
                         shopData["police_stations"].partners.push(obj);
                     } else if (shopData[forceKey]) {
