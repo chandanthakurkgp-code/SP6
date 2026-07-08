@@ -87,7 +87,6 @@
         .nav-container { background-color: var(--dark-bg); padding: 15px 0; position: sticky; top: 0; z-index: 1000; display: flex; gap: 10px; border-bottom: 4px solid var(--light-green); overflow-x: auto; padding-left: 10px; scrollbar-width: none; }
         .tab-btn { font-size: 14px; padding: 10px 20px; font-weight: 900; cursor: pointer; border-radius: 50px; background-color: var(--light-green); color: #fff; border: none; white-space: nowrap; box-shadow: 0 4px 0 var(--green-shadow); }
         
-        /* 🛠️ इसे पूरी तरह फिक्स किया गया है ताकि DIRECTORY सहित कोई भी बटन एक्टिव होने पर नाम छुपा न सके */
         .tab-btn.active, .nav-container button.active, #tabMenu button.active { 
             background-color: #ffffff !important; 
             color: #000000 !important; 
@@ -155,7 +154,7 @@
 </div>
 
 <div class="search-container">
-    <input type="text" id="globalSearch" class="global-search-bar" placeholder="खोजें..." onkeyup="globalFilter()">
+    <input type="text" id="globalSearch" class="global-search-bar" placeholder="खोजें...">
 </div>
 
 <div class="nav-container" id="tabMenu"></div>
@@ -168,8 +167,7 @@
 </div>
 
 <script>
-    const GOOGLE_SHEET_ID = "1LbFP7NdtIiibVAMqnYtCQVfwrj8UrUxN"; 
-
+    // मुख्य मेनू की कीज और उनके नाम बिल्कुल आपके अनुसार अपडेट कर दिए गए हैं
     let shopData = {
         "asp": { title: "ASP", partners: [] },
         "sdpo": { title: "SDPO", partners: [] },
@@ -226,38 +224,47 @@
             document.body.classList.add('night-mode');
             updateModeButton(true);
         }
-        loadCSVWithFallbacks();
+        loadAllCSVFiles();
     };
 
-    async function loadCSVWithFallbacks() {
-        const urls = [
-            'data.csv?v=' + Date.now(),
-            'https://raw.githubusercontent.com/chandanthakurkgp-code/SP6/main/data.csv?v=' + Date.now(),
-            'https://raw.githubusercontent.com/chandanthakurkgp-code/SP6/master/data.csv?v=' + Date.now()
+    // 🛠️ चारों अलग-अलग CSV फाइलों को एक साथ लोड करने का एडवांस फंक्शन
+    async function loadAllCSVFiles() {
+        const cacheBuster = '?v=' + Date.now();
+        
+        // आपकी चारों फाइलों की लिस्ट
+        const files = [
+            'data.csv' + cacheBuster,
+            'constable.csv' + cacheBuster,
+            'nvf_hg.csv' + cacheBuster,
+            'cv.csv' + cacheBuster
         ];
 
-        let textData = null;
-        for (let url of urls) {
-            try {
-                let response = await fetch(url);
-                if (response.ok) {
-                    textData = await response.text();
-                    break;
-                }
-            } catch (e) {}
-        }
+        // सभी फाइलों को एक साथ फेच (Fetch) करना
+        const promises = files.map(file => 
+            fetch(file)
+                .then(res => res.ok ? res.text() : "")
+                .catch(() => "")
+        );
 
-        if (textData) {
-            parseCSVData(textData);
-        } else {
-            init();
+        try {
+            const results = await Promise.all(promises);
+            results.forEach(textData => {
+                if(textData.trim()) {
+                    parseCSVData(textData);
+                }
+            });
+        } catch (e) {
+            console.error("फाइल लोड करने में एरर: ", e);
         }
+        
+        // सारा डेटा लोड होने के बाद वेबसाइट बिल्ड करना
+        init();
     }
 
     function parseCSVData(text) {
         let cleanText = text.replace(/\r/g, ""); 
         let lines = cleanText.split("\n");
-        if (lines.length === 0 || !lines[0].trim()) { init(); return; }
+        if (lines.length === 0 || !lines[0].trim()) return;
 
         let headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^["']|["']$/g, ""));
         
@@ -299,7 +306,6 @@
                 }
             }
         }
-        init();
     }
 
     function init() {
@@ -358,6 +364,9 @@
         
         dirSection.innerHTML = allHtml;
         contentArea.prepend(dirSection);
+
+        // सर्च इनपुट इवेंट को फिर से बाइंड करना
+        document.getElementById('globalSearch').onkeyup = globalFilter;
     }
 
     function createTab(text, id, active) {
