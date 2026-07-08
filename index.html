@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SUPERINTENDENT OF POLICE – Paschim Medinipur</title>
     <style>
-        /* स्ट्रक्चर और खूबसूरत केसरिया थीम बिल्कुल सुरक्षित है */
         * { box-sizing: border-box; transition: background 0.3s, color 0.3s; }
         
         :root { 
@@ -167,7 +166,7 @@
 </div>
 
 <script>
-    // मुख्य मेनू की कीज और उनके नाम बिल्कुल आपके अनुसार अपडेट कर दिए गए हैं
+    // मुख्य मेनू की कीज और उनके नाम बिल्कुल नए सिस्टम के अनुसार अरेंज कर दिए गए हैं
     let shopData = {
         "asp": { title: "ASP", partners: [] },
         "sdpo": { title: "SDPO", partners: [] },
@@ -226,22 +225,22 @@
             document.body.classList.add('night-mode');
             updateModeButton(true);
         }
-        loadAllCSVFiles();
+        loadAll6CSVFiles();
     };
 
-    // 🛠️ चारों अलग-अलग CSV फाइलों को एक साथ लोड करने का एडवांस फंक्शन
-    async function loadAllCSVFiles() {
+    // 🛠️ अब 6 अलग-अलग CSV फाइलों को एक साथ लोड करने का हाई-स्पीड फंक्शन
+    async function loadAll6CSVFiles() {
         const cacheBuster = '?v=' + Date.now();
         
-        // आपकी चारों फाइलों की लिस्ट
         const files = [
             'data.csv' + cacheBuster,
+            'si_asi.csv' + cacheBuster,
             'constable.csv' + cacheBuster,
-            'nvf_hg.csv' + cacheBuster,
+            'nvf.csv' + cacheBuster,
+            'hg.csv' + cacheBuster,
             'cv.csv' + cacheBuster
         ];
 
-        // सभी फाइलों को एक साथ फेच (Fetch) करना
         const promises = files.map(file => 
             fetch(file)
                 .then(res => res.ok ? res.text() : "")
@@ -256,10 +255,9 @@
                 }
             });
         } catch (e) {
-            console.error("फाइल लोड करने में एरर: ", e);
+            console.error("फाइल लोड एरर: ", e);
         }
         
-        // सारा डेटा लोड होने के बाद वेबसाइट बिल्ड करना
         init();
     }
 
@@ -367,7 +365,6 @@
         dirSection.innerHTML = allHtml;
         contentArea.prepend(dirSection);
 
-        // सर्च इनपुट इवेंट को फिर से बाइंड करना
         document.getElementById('globalSearch').onkeyup = globalFilter;
     }
 
